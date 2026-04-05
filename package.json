@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx scripts/seed.ts",
+    "drift:on": "tsx scripts/simulate-drift.ts on",
+    "drift:off": "tsx scripts/simulate-drift.ts off",
+    "canary": "tsx runner/run-canary.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.3.0",

@@ -1,36 +1,126 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sentinel — Workflow Canary + Drift Radar
 
-## Getting Started
+A proactive monitoring system that detects workflow drift in browser-automated SSO login flows before users are impacted. Built as a prototype for [Aglide](https://aglide.com)'s zero-trust, local-agent architecture.
 
-First, run the development server:
+## The Problem
+
+Aglide runs on-device browser agents to automate login and lifecycle workflows for apps that don't support SAML/SCIM. When a target app changes its login UI (renamed button, new MFA step, altered redirect chain), the workflow silently breaks — and employees get locked out of mission-critical apps.
+
+**Sentinel** solves this by running scheduled canary executions of workflows, comparing each run against a known-good baseline, and alerting IT/security admins before real users are affected.
+
+## Why This Architecture
+
+Aglide's core constraint is zero-knowledge: the platform never has access to user sessions, credentials, or application data. Sentinel respects this by:
+
+- **Storing only privacy-safe artifacts** — SHA-256 hashes of reduced DOM signatures, domain-only redirect chains, timing metrics, and boolean outcome checks. Never raw HTML, screenshots, input values, or cookies.
+- **Running locally** — The Playwright canary runner executes on-device, matching Aglide's local-agent model. Only hashes and metrics are sent to the API.
+- **Fingerprinting without content** — DOM fingerprints are computed from structural features (tag names, ARIA roles, input types) with text content and dynamic IDs/classes excluded.
+
+## Quick Start
 
 ```bash
+npm install
+npx playwright install chromium
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+In a separate terminal:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run seed
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Then open [http://localhost:3000/canaries](http://localhost:3000/canaries).
 
-## Learn More
+## Demo Walkthrough
 
-To learn more about Next.js, take a look at the following resources:
+### 1. Baseline captured, canary healthy
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+After running `npm run seed`, you'll see a canary plan for "Acme Corp Login" with a baseline (v1) and several healthy runs. The dashboard shows all green.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+You can also visit [http://localhost:3000/fakeapp/login](http://localhost:3000/fakeapp/login) to see the target app — a fully branded SaaS application (Acme Corp) with its own design, separate from Sentinel's dashboard. This is the app being monitored.
 
-## Deploy on Vercel
+### 2. Simulate real-world drift
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run drift:on
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+This changes the target app's behavior:
+- Login button label changes from "Sign In" to "Log In"
+- An MFA interstitial page is inserted in the login flow
+
+Visit [http://localhost:3000/fakeapp/login](http://localhost:3000/fakeapp/login) to see the change — the button now says "Log In", and clicking it goes through an MFA page before reaching the dashboard.
+
+### 3. Detect drift
+
+Click **"Run Canary Now"** on the detail page. Sentinel detects:
+- **Step Shape Drift** — The workflow now has extra steps (MFA page) and the button's accessible name changed. Severity: Critical (60 base x 1.2 login multiplier = 72).
+
+An alert is created and shown on the dashboard.
+
+### 4. Resolve or promote
+
+- **Acknowledge** — "I see this, I'm investigating." Alert stays open, no duplicate alerts on re-runs.
+- **Resolve** — "This is handled." Alert closes. Next drift run creates a new alert.
+- **Promote to Baseline** — "The app changed, and that's fine." Captures the current run as the new baseline. Next canary run compares against it — healthy again.
+
+```bash
+npm run drift:off   # Reset the target app to original state
+```
+
+## Tech Stack
+
+| Layer | Technology | Rationale |
+|-------|-----------|-----------|
+| Framework | Next.js 16 (App Router) | Full-stack TypeScript, server components for data fetching |
+| Browser automation | Playwright | Headless canary execution, DOM inspection, redirect tracking |
+| Persistence | SQLite (better-sqlite3) | Zero-config, local-first, queryable — no external DB needed |
+| UI | Tailwind v4 + shadcn/ui | Aglide-inspired design system with dark green sidebar |
+| Font | Outfit (via next/font) | Matches Aglide's typography |
+
+## API Endpoints
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET/POST | `/api/canary-plans` | List/create canary plans |
+| GET | `/api/canary-plans/:id` | Plan detail + status |
+| POST | `/api/canary-plans/:id/trigger` | Trigger a canary run (spawns Playwright) |
+| POST | `/api/canary-plans/:id/baseline` | Promote a run to baseline |
+| GET | `/api/canary-plans/:id/runs` | Run history |
+| GET | `/api/alerts` | List alerts (optional `?state=open` filter) |
+| POST | `/api/alerts/:id/ack` | Acknowledge alert |
+| POST | `/api/alerts/:id/resolve` | Resolve alert |
+
+## Project Structure
+
+```
+sentinel/
+  drift-config.json    # Drift mode toggle (read by fake app)
+  runner/              # Playwright canary runner (local execution)
+    run-canary.ts      # Main runner — navigates flow, captures artifacts
+    extract-artifacts.ts # DOM fingerprinting, redirect capture, outcome checks
+    hash.ts            # SHA-256 utility
+  scripts/             # Seed data + drift simulation
+    seed.ts            # Creates plan, baseline, healthy runs
+    simulate-drift.ts  # Toggles drift-config.json on/off
+  src/
+    app/
+      api/             # REST API routes
+      canaries/        # Sentinel dashboard: overview + detail pages
+      alerts/          # Alert list page
+      fakeapp/         # Target app (Acme Corp) — fully branded, separate UI
+        login/         # Login page (button label changes in drift mode)
+        mfa/           # MFA page (only appears in drift mode)
+        home/          # Dashboard with stats, activity feed
+    lib/
+      db.ts            # SQLite persistence + typed query layer
+      drift.ts         # Drift heuristic engine (5 detection types)
+      severity.ts      # Severity scoring with login multiplier
+      schema.ts        # TypeScript interfaces for all entities
+    components/
+      sidebar.tsx      # Dark green nav sidebar
+      shell-wrapper.tsx # Route-aware layout (hides shell on fakeapp routes)
+      status-badge.tsx  # Health status indicator
+      ui/              # shadcn/ui components (Badge, Card, Button, etc.)
+```
