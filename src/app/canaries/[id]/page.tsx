@@ -197,15 +197,15 @@ export default async function CanaryDetailPage({
       )}
 
       {/* Run history */}
-      <Card>
+      <Card className="overflow-visible">
         <CardHeader className="pb-3 pt-5 px-5">
           <CardTitle className="text-sm font-medium">Run History</CardTitle>
         </CardHeader>
-        <CardContent className="px-5 pb-5">
+        <CardContent className="px-5 pb-5 overflow-visible">
           {runs.length === 0 ? (
             <p className="text-sm text-muted-foreground">No runs yet.</p>
           ) : (
-            <div className="flex gap-1 items-end h-12">
+            <div className="flex gap-1 items-end h-12 pt-10">
               {runs.slice().reverse().map((run) => {
                 const hasDrift = run.findings.length > 0;
                 const maxSev = hasDrift ? Math.max(...run.findings.map((f) => f.severity)) : 0;
@@ -218,7 +218,7 @@ export default async function CanaryDetailPage({
                 return (
                   <div key={run.id} className="group relative flex-1 max-w-4">
                     <div className={`h-10 rounded-sm ${bg} transition-opacity hover:opacity-80`} />
-                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-popover border rounded-md shadow-md p-2.5 text-xs whitespace-nowrap z-10">
+                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-popover border rounded-md shadow-md p-2.5 text-xs whitespace-nowrap z-50">
                       <p className="font-medium">{new Date(run.endedAt).toLocaleTimeString()}</p>
                       <p className="text-muted-foreground">{run.findings.length} findings &middot; {run.artifacts.timing.totalMs}ms</p>
                     </div>
