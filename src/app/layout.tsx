@@ -11,7 +11,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Sentinel — Workflow Canary + Drift Radar",
+  title: "Sentinel: Workflow Canary and Drift Radar",
   description: "Detect workflow drift before it becomes an outage",
 };
 
@@ -23,9 +23,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${outfit.variable} h-full antialiased`}>
       <body className="h-full font-sans">
-        <ShellWrapper sidebar={<Sidebar />}>
-          {children}
-        </ShellWrapper>
+        <ShellWrapper sidebar={<Sidebar />}>{children}</ShellWrapper>
       </body>
     </html>
   );

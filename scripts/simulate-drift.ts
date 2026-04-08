@@ -26,5 +26,5 @@ if (driftMode) {
   console.log("  - Step shape will change (new MFA step)");
   console.log("\nRun a canary to detect the drift.");
 } else {
-  console.log("Drift mode OFF — fake app restored to baseline behavior.");
+  console.log("Drift mode OFF. Fake app restored to baseline behavior.");
 }

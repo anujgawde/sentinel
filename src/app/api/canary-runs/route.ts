@@ -60,7 +60,7 @@ export async function POST(request: Request) {
         canaryRunId: runId,
         state: "open",
         severity: overallSeverity,
-        title: `Drift detected in ${plan.name} — severity ${overallSeverity}`,
+        title: `Drift detected in ${plan.name}, severity ${overallSeverity}`,
         createdAt: now,
         updatedAt: now,
       });

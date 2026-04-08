@@ -16,7 +16,10 @@ function timeAgo(iso: string): string {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-const stateVariant: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
+const stateVariant: Record<
+  string,
+  "default" | "secondary" | "destructive" | "outline"
+> = {
   open: "destructive",
   acknowledged: "secondary",
   resolved: "outline",
@@ -43,25 +46,39 @@ export default function AlertsPage() {
       ) : (
         <div className="space-y-2">
           {alerts.map((alert) => (
-            <Link key={alert.id} href={`/canaries/${alert.canaryPlanId}`} className="block">
-              <Card className="hover:shadow-sm transition-shadow cursor-pointer">
-                <CardContent className="py-4 px-5">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${alert.state === "open" ? "bg-destructive" : alert.state === "acknowledged" ? "bg-amber-500" : "bg-muted-foreground"}`} />
-                      <p className="text-sm truncate">{alert.title}</p>
-                    </div>
-                    <div className="flex items-center gap-4 shrink-0">
-                      <span className="text-xs text-muted-foreground">{timeAgo(alert.createdAt)}</span>
-                      <Separator orientation="vertical" className="h-5" />
-                      <Badge variant={stateVariant[alert.state] || "outline"} className="font-normal text-xs">
+            <Card key={alert.id}>
+              <CardContent className="py-4 px-5">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span
+                      className={`w-2 h-2 rounded-full shrink-0 ${alert.state === "open" ? "bg-destructive" : alert.state === "acknowledged" ? "bg-amber-500" : "bg-muted-foreground"}`}
+                    />
+                    <p className="text-sm truncate">{alert.title}</p>
+                  </div>
+                  <div className="flex items-center gap-4 shrink-0">
+                    <span className="text-xs text-muted-foreground w-16 text-right">
+                      {timeAgo(alert.createdAt)}
+                    </span>
+                    <Separator orientation="vertical" className="h-5" />
+                    <div className="w-24 flex justify-center">
+                      <Badge
+                        variant={stateVariant[alert.state] || "outline"}
+                        className="font-normal text-xs"
+                      >
                         {alert.state}
                       </Badge>
                     </div>
+                    <Separator orientation="vertical" className="h-5" />
+                    <Link
+                      href={`/canaries/${alert.canaryPlanId}`}
+                      className="text-xs text-primary hover:underline whitespace-nowrap"
+                    >
+                      View Canary &rarr;
+                    </Link>
                   </div>
-                </CardContent>
-              </Card>
-            </Link>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

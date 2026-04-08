@@ -27,7 +27,7 @@ export function computeDrift(
       canaryRunId: runId,
       type: "REDIRECT_DRIFT",
       severity,
-      description: `Redirect chain changed — ${parts.join("; ")}`,
+      description: `Redirect chain changed: ${parts.join("; ")}`,
     });
   }
 
@@ -39,7 +39,7 @@ export function computeDrift(
       type: "DOM_DRIFT",
       severity: 50,
       description:
-        "DOM fingerprint mismatch on landing page — page structure (tags, roles, ARIA labels) changed from baseline",
+        "DOM fingerprint mismatch on landing page. Page structure (tags, roles, ARIA labels) changed from baseline.",
     });
   }
 
@@ -51,7 +51,7 @@ export function computeDrift(
       type: "STEP_SHAPE_DRIFT",
       severity: 60,
       description:
-        "Workflow step shape changed — number of steps, action types, or target element signatures differ from baseline (possible new MFA step or renamed element)",
+        "Workflow step shape changed. Number of steps, action types, or target element signatures differ from baseline (possible new MFA step or renamed element).",
     });
   }
 
