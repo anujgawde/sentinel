@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { CanaryActions } from "./actions";
+import { AutoRefresh } from "./auto-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,7 @@ export default async function CanaryDetailPage({
 
   return (
     <div className="space-y-6">
+      <AutoRefresh planId={id} />
       {/* Header */}
       <div>
         <div className="flex items-start justify-between">

@@ -3,6 +3,7 @@ import { listPlans, getPlanStatus, getLatestRun, getLatestBaseline } from "@/lib
 import { StatusBadge } from "@/components/status-badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AutoRefreshOverview } from "./auto-refresh";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default function CanariesPage() {
 
   return (
     <div>
+      <AutoRefreshOverview />
       <div className="mb-8">
         <h1 className="text-xl font-medium">Canaries</h1>
         <p className="text-sm text-muted-foreground mt-1">

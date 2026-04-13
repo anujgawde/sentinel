@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Separator } from "@/components/ui/separator";
 import { Shield, Bell, Settings, Activity } from "lucide-react";
+import { usePoll } from "@/components/use-poll";
 
 const navItems = [
   { href: "/canaries", label: "Canaries", icon: Activity },
@@ -12,6 +13,8 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const openAlerts = usePoll<{ id: string }[]>("/api/alerts?state=open", 3000);
+  const openCount = openAlerts?.length ?? 0;
 
   if (pathname.startsWith("/fakeapp")) return null;
 
@@ -33,20 +36,27 @@ export function Sidebar() {
         {navItems.map((item) => {
           const isActive = pathname.startsWith(item.href);
           const Icon = item.icon;
+          const showBadge = item.href === "/alerts" && openCount > 0;
           return (
             <Link
               key={item.href}
               href={item.href}
               className={`
-                flex flex-col items-center justify-center gap-0.5 w-11 h-11 rounded-lg transition-colors text-[10px] font-light
-                ${isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                relative flex flex-col items-center justify-center gap-0.5 w-11 h-11 rounded-lg transition-colors text-[10px] font-light
+                ${
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
                 }
               `}
             >
               <Icon className="w-4.5 h-4.5" strokeWidth={1.5} />
               <span>{item.label}</span>
+              {showBadge && (
+                <span className="absolute top-1 right-1 min-w-4 h-4 px-1 rounded-full bg-destructive text-white text-[9px] font-medium flex items-center justify-center leading-none">
+                  {openCount > 9 ? "9+" : openCount}
+                </span>
+              )}
             </Link>
           );
         })}
